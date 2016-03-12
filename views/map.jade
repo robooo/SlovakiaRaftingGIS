@@ -1,0 +1,128 @@
+extends layout
+block content
+ div
+    #map
+    #leg_title2
+     span#leg_items2 Rafting Routes Finder
+    #leg2
+      input(type='checkbox' id='barrier')
+      span#leg_items Barrier
+      input(type='checkbox' id='camp')
+      span#leg_items Camp
+      br
+      span#leg_items2 River
+      #the-basics
+        input(type="text", placeholder="Name of the River",class="typeahead", name="river", id="river")
+      span#leg_items2 Max Camp Distance
+      input(type="text", name="distance", id="distance")
+      input(type="submit", value="Find Route", id='query')
+      br
+    script(type='text/javascript').
+        L.mapbox.accessToken = 'ADD YOUR PK KEY HERE'
+        var map = L.mapbox.map('map', 'YOUR PASSWORD',{center: [48.572892, 19.1272176],zoom: 15});
+
+        var barrierON = 0;  //Barier checkbox
+        var campON = 0;   //Camp checkbox
+        var tripLayer = L.mapbox.featureLayer().addTo(map);
+
+            //checkboxes
+            $('#barrier').click(function() {
+              if (this.checked) {
+                barrierON=1;
+              }
+              else{
+                barrierON=0;
+              }
+            });
+            $('#camp').click(function() {
+              if (this.checked) {
+                campON=1;
+              }
+              else{
+                campON=0;
+              }
+            });
+
+            //get nearest river to click
+            map.on('click', function(e) {
+                  if(tripLayer)
+                    tripLayer.clearLayers();
+                  var lat = e.latlng.lat;
+                  var lng = e.latlng.lng;
+                  $.getJSON('/nearpoint/' + lat + '/' + lng, function(data) {
+                    addLayer(data[0].features[0].properties.name,200);
+                    alert("Name of river: " + data[0].features[0].properties.name + ",\nLength: " + Math.floor(data[1].riverLength) +"km\n" +
+                    		"\nChosen point\nLon: " + lng + ",\nLat: " + lat )
+                  });                  
+            });
+
+            //get query from menu
+            $( "#query" ).click(function() {
+              if(tripLayer)
+                tripLayer.clearLayers();
+
+              var inputBoxRiver = document.getElementById('river').value;
+              var inputBoxDistance = document.getElementById('distance').value || 200;
+              addLayer(inputBoxRiver,inputBoxDistance);
+            });
+
+        function addLayer(inputBoxRiver, inputBoxDistance) {
+            $.getJSON('/mapjson/' + inputBoxRiver + '/' + inputBoxDistance +'/'+ barrierON +'/'+ campON , function(data) {
+                for(var i = 0; i < Object.keys(data.features).length; i++){
+                  var nameToolTip;
+
+                  //get name of barrier or camp site
+                  if(data.features[i].properties.name) {
+                    nameToolTip = data.features[i].properties.name;
+                  }
+                  else {
+                    nameToolTip = data.features[i].properties.type;
+                  }
+
+                  //if there's some block on river
+                  if(data.features[i].properties.type == 'weir' || data.features[i].properties.type == 'waterfall' || data.features[i].properties.type == 'lock_gate') {
+                    L.marker([data.features[i].geometry.coordinates[1],data.features[i].geometry.coordinates[0]],
+                      { icon: L.mapbox.marker.icon({'marker-symbol': 'cross','marker-color': '#FF0000'})
+                    }).addTo(tripLayer).bindPopup(nameToolTip);
+                  }
+                   //if there's some camp site on river
+                   if(data.features[i].properties.type == 'camp_site' || data.features[i].properties.type == 'picnic_site')
+                     L.marker([data.features[i].geometry.coordinates[1],data.features[i].geometry.coordinates[0]],
+                       { icon: L.mapbox.marker.icon({'marker-symbol': 'campsite','marker-color': '#66FF66'})
+                     }).addTo(tripLayer).bindPopup(nameToolTip);
+
+                   //draw whole river
+                   if(data.features[i].properties.type == 'river')
+                    L.mapbox.featureLayer(data.features[i]).addTo(tripLayer).setStyle({weight: 8,color: '#3232CC'}).bindPopup(nameToolTip);
+                }
+              });
+        }
+
+               var substringMatcher = function(strs) {
+                  return function findMatches(q, cb) {
+                     var matches, substringRegex;
+
+                       matches = [];
+                         substrRegex = new RegExp(q, 'i');
+
+                      $.each(strs, function(i, str) {
+                        if (substrRegex.test(str)) {
+                         matches.push(str);
+                        }
+                      });
+
+                      cb(matches);
+                     };
+                   };
+
+               var rivers =["Banicki Potok","Bartnianka","Bebrava","Belá","Bereścianka","Bečva","Biała","Białka","Białka / Biela voda","Biały Dunajec","Biały Potok","Biela","Biela Orava","Biela voda","Bielcza","Biely Váh","Binczarówka","Biokoridor pri Vodnom diele Žilina","Bobrava","Bodrog","Bodva","Brusník","Butorowski Potok","Bystra","Bystre","Bystrica","Bystrzanka","Bódva","Chotčianka","Cicha","Cicha Woda Zakopiańska","Cifra malom-patak","Cirocha","Ciśniawa","Crasna","Csever-árok","Czarna Orawa","Czarna Woda","Czarny Dunajec","Czarny Potok","Czatożanka","Czerwonka","Czyrnianka","Danielka","Demänovka","Derňa","Dlhopoľka","Dobka","Doborgazi átvágás","Dolný Dudváh","Domanižanka","Donau","Donau - Dunaj","Donauarm","Dołżyczka","Drusztyński Potok","Duna","Duna / Dunaj","Dunaj","Dunajec","Dwernik","Dyje","Dyje/Thaya","Dřevnice","Eger-patak","Fischa","Fischa-Werksbach","Foluszowy Potok","Galga","Glinka","Glinna","Gostwiczanka","Gołasanka","Grajcarek","Görgetegi-Duna","Handlovka","Haná","Hejő","Hermanov potok","Hernád","Hernád / Hornád","Hloučela","Hnilec","Hoczewka","Holeška","Holt-Mosoni-Duna","Holubnica","Hornád","Horný Dudváh","Hołcyna","Hron","Hutná","Hylaty","Ipeľ","Ipeľ / Ipoly","Izwór","Jabłonka","Jakubjanka","Jasieńka","Jasiołka","Jastrzębik","Javorinka / Jaworowy potok","Jaworzynka","Jihlava","Jičínka","Jurgowczyk","Juszczynka","Kalonka","Kameszniczanka (Bystra)","Kamienica","Kaminna","Kamionka","Kežmarská Biela voda","Kiczorka","Kidunowski Potok","Kis-Duna","Kis-Rába","Klanečnica","Klačanka","Kluszkowianka","Kolonička","Komjaťanka","Konina","Kormosi-Duna","Koszarawa","Kraszna","Krośnica","Krupinica","Krupá","Kryniczanka","Krzczonówka","Kysuca","Kľak","Laborec","Lachówka","Ladomirka","Lajta","Latorica","Lednica","Leitha","Leithakanal","Levočský potok","Leśnianka","Leśnica","Likavčanka","Lipnica","Lipniczanka","Lomná","Lubina","Lupčianka","Lučina","Malina","Malom-patak","Malá Nitra","Malá Svinka","Malý Dunaj","Malý Dunaj - Klátovské rameno","Marcal","March","Marikovský potok","Mikovinyi-árok","Mlýnský náhon","Mochnaczka","Morava","Morava - March","Morawa","Morávka","Mosoni-Duna","Mosoni-Duna tápláló csatorna","Mostysza","Moszczanka","Mszanka","Muráň","Muszynka","Myjava","Myjavská Rudava","Mŕtvy Bodrog","Młynkówka","Młynówka","Nagy-Nádas-tó","Necpalský potok","Niedziczanka","Niskówka","Nitra","Nitrica","Nová Morava","Obidza","Obidzia","Obidzki Potok","Ochotnica","Odra","Okna","Olchy","Olešná","Olza","Olšava","Olše","Olše - Olza","Ondava","Ondřejnice","Orava","Oravica","Ostravice","Osława","Osławica","Paludžanka","Papradnianka","Pewlica","Piorunka","Podhradský potok","Polhoranka","Polnianka","Poniczanka","Poprad","Porębianka","Potok","Potok Caryński","Potok Czarny","Potok Głuchy","Potok Głęboki","Potok Młyniska","Potok Płowiecki","Przykopa","Przysłupianka","Przywarówka","Přivaděč Morávka-Žermanice","Pčolinka","Raba","Rabiański Potok","Rabčický potok","Rajčanka","Revúca","Rima","Rimava","Rimava / Sajó","Rimavica","Rogoźniczek","Romže","Ropa","Roztoczka","Roztoka Mała","Roztoka Wielka","Roňava","Rožnovská Bečva","Rusava","Rzeczyca","Rzeka","Rába","Rábca","Répce","Sajó","Salibský Dudváh","San","Sanoczek","Sekčov","Sidzina","Sidzinka","Sikenica","Skalnica","Skawa","Skawica","Slaná","Slatina","Smerek","Smolniczek","Smolnik","Solinka","Sopotnia","Sopotnia Mała","Sowlina","Soła","Starorzecze","Stará Nitra","Stará Čierna voda","Starý Malý Dunaj","Stebnik","Stobnica","Struha","Strwiąż","Strążyski Potok","Stężniczka","Suchohorský potok","Sudoł","Svinka","Svitava","Svratka","Syhlec","Szamos","Szczawnik","Szentendrei-Duna","Szivárgó-csatorna","Súčanka","Sękówka","Słomka","Słopniczanka","Słotwinka","Tabor","Teplica","Teplička","Terebowiec","Tisza","Tisza holtág","Tiszaluci-Holt-Tisza","Topľa","Torysa","Tovarský potok","Trnávka","Turecký potok","Turiec","Tyrawka","Túr","Třebůvka","Tŕstie","Uh","Ujsoła","Ulička","Valová","Varínka","Velička","Vladárka","Vlára","Vsetínská Bečva","Váh","Wetlina","Wełczówka","Wiar","Wielki Rogoźnik","Wierchomlanka","Wilsznia","Wisła","Wisłok","Wisłoka","Wołosatka","Wołosaty","Wulka","Zagyva","Zakopianka","Zdynianka","Zolná","Zubrzyca","Zwiotkowski Potok","Zábrana","rameno Nitry","słomka","Által-ér","В'єла","Żabniczanka","Čadečka","Żeleźnica","Čierna Voda","Čierny Hron","Čierny Váh","Čierňanka","Žitava","Łososina","Łostówka","Čremošná","Štiavnica","Štiavnický potok","Ľubica","Łubinka","Ľubochnianka","Żylica","Уг","Уж","Łętówka","Тур'я","Люта","Убля","Серне","Стара","Улічка","Цигань","Туричка","Циганка","Латориця"];
+
+                 $('#the-basics .typeahead').typeahead({
+                   hint: true,
+                   highlight: true,
+                   minLength: 1
+                },
+                {
+                   name: 'rivers',
+                   source: substringMatcher(rivers)
+                 });

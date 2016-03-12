@@ -1,0 +1,85 @@
+body {
+  margin:0;
+  padding:0px;
+  font:14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color:#00B7FF;
+}
+
+#map {
+  polygon-pattern-file: url('https://www.mapbox.com/tilemill/assets/pages/pattern-stripe.png');
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:100%;
+  line-color:rgba(50,0,0,1);
+}
+
+#countries {
+  polygon-fill: #999;
+  polygon-opacity: 0.75;
+}
+
+#leg, #leg_title {
+  position:absolute;
+  top:50px;
+  right:10px;
+  width:100px;
+  padding:10px;
+  background:rgba(34,34,34,1);
+  color:#999;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size:12px;
+  line-height:18px;
+  border-radius:3px;
+  max-height:80%;
+  overflow:auto;
+}
+
+#leg_title {
+  top:10px; 
+}
+
+#leg_items , #formular{
+  position:relative;
+  margin-left:5px;
+  top:-1px
+}
+
+#leg2, #leg_title2, #formular {
+  position:absolute;
+  top:200px;
+  right:10px;
+  width:130px;
+  padding:10px;
+  background:rgba(34,34,34,1);
+  color:#999;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size:12px;
+  line-height:18px;
+  border-radius:3px;
+  max-height:80%;
+  overflow:auto;
+}
+
+#leg_title2 {
+  top:160px; 
+}
+
+#leg_items2 {
+  position:relative;
+  margin-left:5px;
+  top:-1px
+}
+
+input[type=submit] {padding:8px 30px; background:#ccc; border:0 none;
+    cursor:pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px; 
+  display:block;
+    margin: 0 auto;
+        top: 15px;
+            position: relative;
+  }
