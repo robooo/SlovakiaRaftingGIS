@@ -1,6 +1,6 @@
 # SlovakiaRaftingGIS
 School project with GIS.
-Shows all rivers with camps near and can display some barriers on river where u can't raft.
+Shows all rivers with camps near and can display some barriers on river where you can't raft.
 
 ##What you need?
 * register on mapbox for your credentials and put them to views/map.jade
